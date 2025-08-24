@@ -1,0 +1,10 @@
+python-telegram-bot
+python-dotenv
+requests
+beautifulsoup4
+# For MetaApi
+metaapi-cloud-sdk
+# For TradingView automation
+tradingview-screener
+# For web scraping
+lxml
