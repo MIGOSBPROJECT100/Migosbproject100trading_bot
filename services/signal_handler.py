@@ -1,51 +1,33 @@
-from telegram import Update
-from telegram.ext import ContextTypes
-from .db_manager import DBManager
-from .trading_engine import TradingEngine
-from .order_manager import OrderManager
-from config import BOT_SLOGAN
+from services.order_manager import OrderManager
+from services.tradingview_client import TradingViewClient
+from utils.logger import get_logger
+
+log = get_logger("signals")
 
 class SignalHandler:
-    def __init__(self, db_manager: DBManager):
-        self.db = db_manager
-        self.trading_engine = TradingEngine()
+    def __init__(self):
+        self.om = OrderManager()
+        self.tv = TradingViewClient()
 
-    async def check_for_signals(self, context: ContextTypes.DEFAULT_TYPE):
-        # This function would be called periodically by a job queue
-        signal = self.trading_engine.find_migos_concept_setup()
-        
-        if signal:
-            # Get all premium users
-            all_users = self.db.get_all_users()
-            premium_users = [u for u in all_users if u['account_status'] == 'Premium' and u['meta_api_token']]
-            
-            # Create signal message
-            signal_message = self.format_signal_message(signal)
-            
-            for user in premium_users:
-                # Send signal message to user via Telegram
-                await context.bot.send_message(chat_id=user['user_id'], text=signal_message, parse_mode='Markdown')
-                
-                # Execute trade on their linked account
-                order_manager = OrderManager(user['meta_api_token'])
-                # This needs the account_id from MetaApi, which we don't store yet.
-                # This part needs more logic to map user_id to metaapi account_id.
-                # await order_manager.execute_trade(account_id, signal)
-
-    def format_signal_message(self, signal: dict) -> str:
-        trade_type = "BUY" if signal['type'] == 'buy' else "SELL"
-        emoji = "🟢" if trade_type == "BUY" else "🔴"
-        
-        message = (
-            f"{emoji} **READY SIGNAL: {trade_type}** {emoji}\n\n"
-            f"**Symbol:** {signal['symbol']}\n"
-            f"**Entry At:** {signal['entry']}\n"
-            f"**Target 1:** {signal['tp1']} ({signal['tp1_pips']} Pips)\n"
-            f"**Target 2:** {signal['tp2']} ({signal['tp2_pips']} Pips)\n"
-            f"**Target 3:** {signal['tp3']} ({signal['tp3_pips']} Pips)\n"
-            f"🛑 **Stop-Loss:** {signal['sl']} ({signal['sl_pips']} Pips)\n\n"
-            "_Disclaimer: This is not financial advice. Please conduct your own analysis. "
-            "You are solely responsible for your trading decisions._\n\n"
-            f"**{BOT_SLOGAN}**"
+    async def send_signal(self, bot, chat_id:int, symbol:str, direction:str, entry:float, tp1:float, tp2:float, tp3:float, sl:float):
+        if self.om.is_lockdown():
+            await bot.send_message(chat_id, 
+                "🚫 Lockdown active due to high-impact news. No new trades will be opened." +
+                "\nPATIENCE ✰ DISCIPLINE ✰ RISK MANAGEMENT")
+            return
+        shot = await self.tv.screenshot_symbol(symbol, timeframe="15")
+        try:
+            await bot.send_photo(chat_id=chat_id, photo=open(shot, "rb"))
+        except Exception:
+            pass
+        txt = (
+            f"🟢 READY SIGNAL: {direction.upper()} 🟢\n"
+            "Disclaimer: This is not financial advice. Please conduct your own analysis. "
+            "If you are seeing this alert more than 5 minutes after it was sent, consider waiting for the next opportunity. "
+            "You are solely responsible for your trading decisions.\n\n"
+            f"{direction.upper()} At: {entry}\n"
+            f"Target 1: {tp1}\nTarget 2: {tp2}\nTarget 3: {tp3}\n"
+            f"🛑 Stop-Loss: {sl}\n"
+            "PATIENCE ✰ DISCIPLINE ✰ RISK MANAGEMENT"
         )
-        return message
+        await bot.send_message(chat_id=chat_id, text=txt)
