@@ -132,14 +132,14 @@ async def main():
     setup_scheduler(app, app.bot, APP_TZ)
     await app.initialize()
     await app.start()
-    # Set bot description (public)
     try:
         await app.bot.set_my_short_description(texts.BOT_PUBLIC_DESC)
     except Exception:
         pass
     log.info("Bot started.")
-    await app.updater.start_polling(allowed_updates=Update.ALL_TYPES)
-    await app.updater.wait()
+
+    # Run polling loop until cancelled
+    await app.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == "__main__":
     asyncio.run(main())
