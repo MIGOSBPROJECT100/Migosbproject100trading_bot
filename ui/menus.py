@@ -20,16 +20,16 @@ def signals_menu():
 
 def account_menu():
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("/link_account", callback_data="account.link"),
-         InlineKeyboardButton("/my_status", callback_data="account.status")],
-        [InlineKeyboardButton("Back", callback_data="back.main")]
+        [InlineKeyboardButton("Link Account", callback_data="account.link"),
+         InlineKeyboardButton("My Status", callback_data="account.status")],
+        [InlineKeyboardButton("⬅️ Back", callback_data="back.main")]
     ])
 
 def premium_menu():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("Link My Broker Account", callback_data="premium.link")],
         [InlineKeyboardButton("Pay One-Time Fee", callback_data="premium.pay")],
-        [InlineKeyboardButton("Back", callback_data="back.main")]
+        [InlineKeyboardButton("⬅️ Back", callback_data="back.main")]
     ])
 
 def news_menu(user_prefs):
@@ -44,8 +44,8 @@ def news_menu(user_prefs):
 
 def admin_menu():
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("/users", callback_data="admin.users"),
-         InlineKeyboardButton("/approve_payment", callback_data="admin.approve")],
-        [InlineKeyboardButton("/broadcast", callback_data="admin.broadcast")],
+        [InlineKeyboardButton("Users", callback_data="admin.users"),
+         InlineKeyboardButton("Approve Payment", callback_data="admin.approve")],
+        [InlineKeyboardButton("Broadcast", callback_data="admin.broadcast")],
         [InlineKeyboardButton("⬅️ Back", callback_data="back.main")]
     ])
