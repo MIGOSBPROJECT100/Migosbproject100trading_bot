@@ -127,19 +127,19 @@ def application():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, feedback_flow))
     return app
 
-async def main():
+def main():
     app = application()
     setup_scheduler(app, app.bot, APP_TZ)
-    await app.initialize()
-    await app.start()
-    try:
-        await app.bot.set_my_short_description(texts.BOT_PUBLIC_DESC)
-    except Exception:
-        pass
-    log.info("Bot started.")
 
-    # Run polling loop until cancelled
-    await app.run_polling(allowed_updates=Update.ALL_TYPES)
+    # Set bot description safely
+    async def set_desc():
+        try:
+            await app.bot.set_my_short_description(texts.BOT_PUBLIC_DESC)
+        except Exception:
+            pass
+
+    # Run everything inside run_polling (manages its own loop)
+    app.run_polling(allowed_updates=Update.ALL_TYPES, before_startup=set_desc)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
