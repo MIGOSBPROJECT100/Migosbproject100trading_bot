@@ -1,4 +1,4 @@
-import asyncio, os
+import os
 from telegram import Update
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
 from utils.logger import get_logger
@@ -80,24 +80,16 @@ async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Broadcast sent.")
 
 async def feedback_flow(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # respects cooldown
     uid = update.effective_user.id
     if not feedback_allowed(uid):
         await update.message.reply_text(
             f"Dear {update.effective_user.full_name},\n"
-            "You are sending feedback requests too quickly. To prevent spam, please wait a moment before trying again.\n"
-            "This is an automated message to ensure fair usage for all users.")
+            "You are sending feedback requests too quickly. Please wait a moment before trying again."
+        )
         return
     if context.user_data.get("awaiting_feedback"):
         context.user_data["awaiting_feedback"] = False
         set_feedback_cooldown(uid)
-        # forward to admins
-        for tag in ADMIN_TAGS:
-            try:
-                await context.bot.send_message(chat_id=update.effective_chat.id, text="")
-            except Exception:
-                pass
-        # send to actual admin IDs
         from config.settings import ADMIN_IDS
         for aid in ADMIN_IDS:
             try:
@@ -106,13 +98,18 @@ async def feedback_flow(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 pass
         await update.message.reply_text(
             f"Thank you, {update.effective_user.full_name}.\n"
-            "Your message has been successfully delivered to the owner. We appreciate you taking the time to help us improve.\n"
+            "Your message has been successfully delivered to the owner.\n"
             "Managed by @Bank_Rats | @Migos_B_Fx254")
     else:
-        return  # not in feedback mode; handled elsewhere
+        return
 
 def application():
     app = Application.builder().token(BOT_TOKEN).build()
+
+    # Scheduler setup
+    setup_scheduler(app, app.bot, APP_TZ)
+
+    # Handlers
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("register", register))
     app.add_handler(CommandHandler("terms", terms))
@@ -125,21 +122,21 @@ def application():
     app.add_handler(CallbackQueryHandler(handle_menu))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_pasted_token))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, feedback_flow))
-    return app
 
-def main():
-    app = application()
-    setup_scheduler(app, app.bot, APP_TZ)
-
-    # Set bot description safely
-    async def set_desc():
+    # Safe post init hook
+    async def post_init(app: Application):
         try:
             await app.bot.set_my_short_description(texts.BOT_PUBLIC_DESC)
         except Exception:
             pass
 
-    # Run everything inside run_polling (manages its own loop)
-    app.run_polling(allowed_updates=Update.ALL_TYPES, before_startup=set_desc)
+    app.post_init = post_init
+    return app
+
+def main():
+    app = application()
+    log.info("Bot starting...")
+    app.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == "__main__":
     main()
