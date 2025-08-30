@@ -459,9 +459,7 @@ async def main():
     await app.initialize()
     await app.start()
     await on_ready(app)
-    await app.updater.start_polling()  # PTB v20+ safe polling
-    await app.updater.wait()           # no double loop
-
+    await app.run_polling()  # ✅ PTB v20+ async polling
 if __name__ == "__main__":
     try:
         asyncio.run(main())
