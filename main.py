@@ -462,10 +462,6 @@ async def main():
     await app.run_polling(close_loop=False)  # ✅ prevent closing existing asyncio loop
 if __name__ == "__main__":
     import asyncio
-    try:
-        asyncio.run(main())
-    except RuntimeError as e:
-        # Prevent crash if loop already running (PTB manages it)
-        import nest_asyncio
-        nest_asyncio.apply()
-        asyncio.get_event_loop().run_until_complete(main())
+    import nest_asyncio
+    nest_asyncio.apply()
+    asyncio.run(main())
