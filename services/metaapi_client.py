@@ -14,14 +14,21 @@ except Exception as e:
 class MetaApiClient:
     def __init__(self, token: str):
         self.token = token
-        self.api = MetaApi(token) if MetaApi else None
+        self.api = None  # ✅ defer creation until event loop exists
+
+    async def _ensure_api(self):
+        """Lazily create MetaApi instance when inside an async loop."""
+        if not self.api and MetaApi:
+            self.api = MetaApi(self.token)
+        return self.api
 
     async def get_account_by_login(self, login: str) -> Optional[object]:
-        if not self.api:
+        api = await self._ensure_api()
+        if not api:
             logger.error("MetaApi SDK not available")
             return None
         try:
-            accounts = await self.api.metatrader_account_api.get_accounts()
+            accounts = await api.metatrader_account_api.get_accounts()
             for acc in accounts:
                 if str(acc.login) == str(login):
                     return acc
