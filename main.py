@@ -456,10 +456,9 @@ def build_app() -> Application:
 async def main():
     app = build_app()
     asyncio.create_task(run_scheduler(app))
-    await app.initialize()
-    await app.start()
     await on_ready(app)
-    await app.run_polling(close_loop=False)  # ✅ prevent closing existing asyncio loop
+    await app.run_polling()
+
 if __name__ == "__main__":
     import asyncio
     import nest_asyncio
