@@ -1,5 +1,0 @@
-# MIGOS B. Trading Project - Migrations log
-# Use this file to track DB/schema changes.
-# Initial sqlite schema created at project bootstrap.
-# Format: YYYY-MM-DD - description
-2025-08-22 - Initial DB schema created by db/models.py (users, signals, news_lock).
