@@ -126,7 +126,11 @@ async def register_cb(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [InlineKeyboardButton("➡️ Proceed to Main Menu", callback_data="to_main")],
         ])
         text = with_footer(mdv2("Registration complete. Configure your preferences below."))
-        await q.edit_message_text(text=text, reply_markup=kb, parse_mode=ParseMode.MARKDOWN_V2, protect_content=True)
+        await q.edit_message_text(
+    text=text,
+    reply_markup=kb,
+    parse_mode=ParseMode.MARKDOWN_V2
+        )
     except Exception as e:
         logger.exception("register_cb error: %s", e)
 
@@ -137,7 +141,11 @@ async def to_main(update: Update, context: ContextTypes.DEFAULT_TYPE):
         row = get_user(u.id)
         kb = main_menu_kb(is_admin=(u.id in ADMIN_IDS))
         text = with_footer(mdv2("Main Menu"))
-        await q.edit_message_text(text=text, reply_markup=kb, parse_mode=ParseMode.MARKDOWN_V2, protect_content=True)
+        await q.edit_message_text(
+    text=text,
+    reply_markup=kb,
+    parse_mode=ParseMode.MARKDOWN_V2
+        )
     except Exception as e:
         logger.exception("to_main error: %s", e)
 
@@ -164,7 +172,7 @@ async def main_menu_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
         data = q.data
         u = q.from_user
         if data == "menu_signals":
-            await q.edit_message_text(with_footer(mdv2("Select an asset class")), reply_markup=signals_level2_kb(), parse_mode=ParseMode.MARKDOWN_V2, protect_content=True)
+            await q.edit_message_text(with_footer(mdv2("Select an asset class")), reply_markup=signals_level2_kb(), parse_mode=ParseMode.MARKDOWN_V2)
         elif data.startswith("sig_"):
             mapping = {
                 "sig_cp": "CURRENCY PAIRS",
