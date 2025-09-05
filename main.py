@@ -182,11 +182,11 @@ async def main_menu_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "sig_crypto": "CRYPTO"
             }
             cat = mapping[data]
-            await q.edit_message_text(with_footer(mdv2(f"{cat}")), reply_markup=instruments_kb(cat), parse_mode=ParseMode.MARKDOWN_V2, protect_content=True)
+            await q.edit_message_text(with_footer(mdv2(f"{cat}")), reply_markup=instruments_kb(cat), parse_mode=ParseMode.MARKDOWN_V2)
         elif data.startswith("inst::"):
             instrument = data.split("::",1)[1]
             alerts_on = alert_enabled(u.id, instrument)
-            await q.edit_message_text(with_footer(mdv2(f"{instrument}")), reply_markup=instrument_actions_kb(instrument, alerts_on), parse_mode=ParseMode.MARKDOWN_V2, protect_content=True)
+            await q.edit_message_text(with_footer(mdv2(f"{instrument}")), reply_markup=instrument_actions_kb(instrument, alerts_on), parse_mode=ParseMode.MARKDOWN_V2)
         elif data.startswith("act::"):
             _, action, instrument = data.split("::", 2)
             if action == "toggle":
